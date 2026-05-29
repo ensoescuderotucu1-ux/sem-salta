@@ -1,0 +1,36 @@
+{
+  "destinos": [
+    {
+      "id": 1,
+      "nombre": "Tren a las Nubes",
+      "tipo": "Excursión",
+      "descripcion": "Un viaje a gran altura por la Cordillera de los Andes.",
+      "precio_aprox": "5000",
+      "url": "https://trenalasnubes.com.ar/inicio-es/"
+    },
+    {
+      "id": 2,
+      "nombre": "Cerro San Bernardo",
+      "tipo": "Naturaleza",
+      "descripcion": "Mirador panorámico de la ciudad con acceso por teleférico.",
+      "precio_aprox": "1000",
+      "url": "https://www.saltaturismo.com.ar/ciudad/cerro-san-bernardo.html"
+    }
+  ],
+  "eventos": [
+    {
+      "id": 101,
+      "nombre": "Evento SaltaTech",
+      "fecha": "Sabado",
+      "tipo": "Mañana-Tarde",
+      "url": "https://luma.com/xyg1vktc?tk=CqJCLm"
+    },
+    {
+      "id": 102,
+      "nombre": "Feria Artesanal en Plaza Güemes",
+      "fecha": "Sábado",
+      "tipo": "Familiar",
+      "url": "https://www.saltaweb.com.ar/2020/07/feria-de-la-plaza-guemes/"
+    }
+  ]
+}

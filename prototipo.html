@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pelusa - Asistente Cultural de Salta</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #efeae2;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cfc7' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      max-height: 820px;
+      background: #efeae2;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cfc7' fill-opacity='0.25'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .header {
+      background: #075e54;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+    }
+
+    .header-info {
+      flex: 1;
+    }
+
+    .header-info h1 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .header-info span {
+      font-size: 12px;
+      opacity: 0.8;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .reset-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .reset-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .reset-btn:active {
+      transform: scale(0.9);
+    }
+
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 88%;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14.5px;
+      line-height: 1.55;
+      word-wrap: break-word;
+      animation: msgIn 0.25s ease;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: #fff;
+      color: #303030;
+      border-top-left-radius: 2px;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #d9fdd3;
+      color: #1a1a1a;
+      border-top-right-radius: 2px;
+    }
+
+    .typing {
+      align-self: flex-start;
+      background: #fff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      border-top-left-radius: 2px;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+      animation: msgIn 0.2s ease;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #999;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.16s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.32s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .quick-replies {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 2px 0 4px;
+      align-self: flex-start;
+      animation: msgIn 0.3s ease;
+    }
+
+    .quick-btn {
+      background: #fff;
+      border: 1.5px solid #25d366;
+      color: #075e54;
+      padding: 9px 20px;
+      border-radius: 22px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .quick-btn:hover {
+      background: #25d366;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .quick-btn:active {
+      transform: scale(0.95);
+    }
+
+    .card-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 2px 0;
+      align-self: flex-start;
+      width: 100%;
+      animation: msgIn 0.35s ease;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+      border-left: 4px solid #25d366;
+      transition: transform 0.15s;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+    }
+
+    .card h3 {
+      font-size: 15px;
+      color: #075e54;
+      margin-bottom: 3px;
+    }
+
+    .card .tag {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 11px;
+      padding: 2px 12px;
+      border-radius: 14px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .card p {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 3px;
+    }
+
+    .card .price-tag {
+      font-weight: 600;
+      color: #075e54;
+      font-size: 13px;
+    }
+
+    .card .card-action {
+      margin-top: 10px;
+    }
+
+    .card-action button {
+      background: #075e54;
+      color: #fff;
+      border: none;
+      padding: 7px 18px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .card-action button:hover {
+      background: #128c7e;
+    }
+
+    .card-action button:active {
+      transform: scale(0.96);
+    }
+
+    .card a {
+      display: inline-block;
+      margin-top: 8px;
+      background: #e8f5e9;
+      color: #075e54;
+      padding: 6px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .card a:hover {
+      background: #c8e6c9;
+    }
+
+    .token-card {
+      background: linear-gradient(145deg, #1a2a1f, #0f1a12);
+      border-left: 4px solid #f9a825;
+      border-radius: 14px;
+      padding: 18px;
+      color: #e8f5e9;
+      align-self: flex-start;
+      width: 100%;
+      animation: msgIn 0.35s ease;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+
+    .token-card .level {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f9a825;
+    }
+
+    .token-card .level-label {
+      font-size: 12px;
+      color: #a5d6a7;
+      margin-bottom: 10px;
+    }
+
+    .token-card .xp-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #2e3d32;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .token-card .xp-bar-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #f9a825, #ffd54f);
+      border-radius: 10px;
+      transition: width 0.6s ease;
+    }
+
+    .token-card .xp-text {
+      font-size: 11px;
+      color: #a5d6a7;
+      margin-bottom: 14px;
+    }
+
+    .token-card .insignias-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f9a825;
+      margin-bottom: 8px;
+    }
+
+    .token-card .insignia-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.06);
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+    }
+
+    .token-card .insignia-item .badge-icon {
+      font-size: 20px;
+    }
+
+    .token-card .insignia-item .badge-info {
+      font-size: 13px;
+    }
+
+    .token-card .insignia-item .badge-info strong {
+      color: #fff;
+    }
+
+    .token-card .insignia-item .badge-info small {
+      color: #a5d6a7;
+      font-size: 11px;
+    }
+
+    .cupon {
+      display: flex;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      animation: msgIn 0.35s ease;
+      align-self: flex-start;
+      width: 100%;
+    }
+
+    .cupon-left {
+      background: linear-gradient(135deg, #075e54, #128c7e);
+      color: #fff;
+      min-width: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 10px;
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .cupon-left small {
+      font-size: 10px;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+
+    .cupon-body {
+      flex: 1;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .cupon-body h4 {
+      font-size: 14px;
+      color: #075e54;
+      margin-bottom: 2px;
+    }
+
+    .cupon-body span {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .steps-list {
+      align-self: flex-start;
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      width: 100%;
+      animation: msgIn 0.35s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    }
+
+    .steps-list .step {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .steps-list .step:last-child {
+      border-bottom: none;
+    }
+
+    .steps-list .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #075e54;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .steps-list .step-text strong {
+      display: block;
+      font-size: 14px;
+      color: #075e54;
+    }
+
+    .steps-list .step-text span {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .token-badge {
+      align-self: flex-start;
+      background: linear-gradient(145deg, #1a2a1f, #0f1a12);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      width: 100%;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .token-badge .big-icon {
+      font-size: 52px;
+      margin-bottom: 6px;
+    }
+
+    .token-badge h2 {
+      color: #f9a825;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .token-badge p {
+      color: #a5d6a7;
+      font-size: 13px;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .input-bar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #f0f0f0;
+      border-top: 1px solid #ddd;
+    }
+
+    .input-bar input {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 24px;
+      background: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-bar input:focus {
+      box-shadow: 0 0 0 2px #25d366;
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #075e54;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .send-btn:hover {
+      background: #128c7e;
+    }
+
+    .send-btn:active {
+      transform: scale(0.92);
+    }
+
+    .chat::-webkit-scrollbar { width: 5px; }
+    .chat::-webkit-scrollbar-track { background: transparent; }
+    .chat::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 500px) {
+      .app { max-height: 100vh; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="avatar" style="background-image:url('IMG-20260529-WA0009.jpg');background-size:cover;background-position:center;"></div>
+      <div class="header-info">
+        <h1>Pelusa</h1>
+        <span>Asistente cultural de Salta</span>
+      </div>
+      <button class="reset-btn" id="resetBtn" title="Reiniciar chat">↻</button>
+    </header>
+
+    <div class="chat" id="chat"></div>
+
+    <div class="input-bar">
+      <input type="text" id="chatInput" placeholder="Escribí un mensaje..." autofocus>
+      <button class="send-btn" id="sendBtn">➤</button>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       DATOS
+       ============================================================ */
+    const datosSalta = {
+      destinos: [
+        { id: 1, nombre: 'Tren a las Nubes', tipo: 'Excursión', descripcion: 'Un viaje a gran altura por la Cordillera de los Andes.', precio_aprox: '40000', url: 'https://trenalasnubes.com.ar/inicio-es/' },
+        { id: 2, nombre: 'Teleférico San Bernardo', tipo: 'Naturaleza', descripcion: 'Mirador panorámico de la ciudad con acceso por teleférico.', precio_aprox: '10000', url: 'https://www.saltaturismo.com.ar/ciudad/cerro-san-bernardo.html' }
+      ],
+      eventos: [
+        { id: 101, nombre: 'Evento SaltaTech', fecha: 'Sábado', tipo: 'Mañana-Tarde', precio_aprox: 'Gratis', precio_aprox_Charla_Pro: '6000', url: 'https://luma.com/xyg1vktc?tk=CqJCLm' },
+        { id: 102, nombre: 'Feria Artesanal en Plaza Güemes', fecha: 'Sábado', tipo: 'Familiar', precio_aprox: 'Gratis', url: 'https://www.saltaweb.com.ar/2020/07/feria-de-la-plaza-guemes/' }
+      ],
+      tokens_usuario: {
+        nivel: 'Explorador',
+        xp: '120/300',
+        insignias: [
+          { nombre: 'Feria de Artesanos', fecha: '29/05/2026' },
+          { nombre: 'Museo de Arqueología', fecha: '20/05/2026' }
+        ]
+      },
+      beneficios: [
+        { descuento: '10% OFF', lugar: 'Museo Histórico del Norte',        validez: 'Válido hasta el 30/06',        token_requerido: null },
+        { descuento: '2x1',     lugar: 'Centro Cultural América',           validez: 'Válido hasta el 15/06',        token_requerido: null },
+        { descuento: '15% OFF', lugar: 'Peñas seleccionadas',               validez: 'Válido todos los viernes',     token_requerido: null },
+        { descuento: '¥500',    lugar: 'Feria de Artesanos — Café de especialidad', validez: 'Canjeable con token Feria de Artesanos', token_requerido: 'Feria de Artesanos' },
+        { descuento: '20% OFF', lugar: 'Tienda del Museo de Arqueología',   validez: 'Canjeable con token Museo de Arqueología',   token_requerido: 'Museo de Arqueología' }
+      ]
+    };
+
+    const PASOS = [
+      { title: 'Descubrí',          desc: 'Explorá destinos turísticos y eventos culturales de Salta.' },
+      { title: 'Participá',         desc: 'Asistí a los lugares y eventos que más te gusten.' },
+      { title: 'Obtené tokens',     desc: 'Escaneá el código QR en cada visita para ganar tokens culturales.' },
+      { title: 'Desbloqueá beneficios', desc: 'Canjeá tus tokens por descuentos y beneficios exclusivos.' }
+    ];
+
+    /* ============================================================
+       DOM
+       ============================================================ */
+    const chat = document.getElementById('chat');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    let chatTimers = [];
+    let chatGen = 0;
+
+    function delay(ms, fn) {
+      const gen = chatGen;
+      const id = setTimeout(() => {
+        if (gen === chatGen) fn();
+      }, ms);
+      chatTimers.push(id);
+      return id;
+    }
+
+    function clearPending() {
+      chatTimers.forEach(t => clearTimeout(t));
+      chatTimers = [];
+      chatGen++;
+    }
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+    function addMessage(text, sender) {
+      const div = document.createElement('div');
+      div.className = `message ${sender}`;
+      div.textContent = text;
+      chat.appendChild(div);
+      scrollDown();
+    }
+
+    function addHTML(html, className) {
+      const div = document.createElement('div');
+      div.className = className;
+      div.innerHTML = html;
+      chat.appendChild(div);
+      scrollDown();
+    }
+
+    function addQuickReplies(buttons) {
+      const container = document.createElement('div');
+      container.className = 'quick-replies';
+      buttons.forEach(({ label, action }) => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-btn';
+        btn.textContent = label;
+        btn.addEventListener('click', action);
+        container.appendChild(btn);
+      });
+      chat.appendChild(container);
+      scrollDown();
+    }
+
+    function removeQuickReplies() {
+      document.querySelectorAll('.quick-replies').forEach(el => el.remove());
+    }
+
+    function showTyping() {
+      const div = document.createElement('div');
+      div.className = 'typing';
+      div.id = 'typingIndicator';
+      div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+      chat.appendChild(div);
+      scrollDown();
+    }
+
+    function hideTyping() {
+      const el = document.getElementById('typingIndicator');
+      if (el) el.remove();
+    }
+
+    function scrollDown() {
+      requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
+    }
+
+    function botReply(intro, renderFn, afterFn) {
+      removeQuickReplies();
+      showTyping();
+      delay(1000, () => {
+        hideTyping();
+        if (intro) addMessage(intro, 'bot');
+        if (renderFn) renderFn();
+        if (afterFn) afterFn();
+      });
+    }
+
+    function normalize(text) {
+      return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function toTitle(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    /* ============================================================
+       RENDERIZADORES
+       ============================================================ */
+
+    function addDestinoCards(items) {
+      const container = document.createElement('div');
+      container.className = 'card-container';
+      items.forEach(item => {
+        const priceLabel = item.precio_aprox ? `💰 $${Number(item.precio_aprox).toLocaleString('es-AR')} ARS` : '';
+        container.innerHTML += `
+          <div class="card">
+            <h3>${item.nombre}</h3>
+            <span class="tag">${item.tipo}</span>
+            <p>${item.descripcion}</p>
+            <p class="price-tag">${priceLabel}</p>
+            <div class="card-action">
+              <button onclick="handleAsistencia()">✅ Simular Asistencia (QR)</button>
+              <a href="${item.url}" target="_blank" rel="noopener">🔗 Ver más info</a>
+            </div>
+          </div>`;
+      });
+      chat.appendChild(container);
+      scrollDown();
+    }
+
+    function addEventoCards(items) {
+      const container = document.createElement('div');
+      container.className = 'card-container';
+      items.forEach(item => {
+        let priceHtml = '';
+        if (item.precio_aprox) {
+          if (item.precio_aprox === 'Gratis') {
+            priceHtml = '<p class="price-tag">🎟️ Gratis</p>';
+            if (item.precio_aprox_Charla_Pro) {
+              priceHtml += `<p class="price-tag" style="font-size:12px;color:#888;">Charla Pro: $${Number(item.precio_aprox_Charla_Pro).toLocaleString('es-AR')} ARS</p>`;
+            }
+          } else {
+            priceHtml = `<p class="price-tag">💰 $${Number(item.precio_aprox).toLocaleString('es-AR')} ARS</p>`;
+          }
+        }
+        container.innerHTML += `
+          <div class="card">
+            <h3>${item.nombre}</h3>
+            <span class="tag">${item.tipo}</span>
+            <p>📅 ${item.fecha}</p>
+            ${priceHtml}
+            <div class="card-action">
+              <button onclick="handleAsistencia()">✅ Simular Asistencia (QR)</button>
+              <a href="${item.url}" target="_blank" rel="noopener">🔗 Ver más info</a>
+            </div>
+          </div>`;
+      });
+      chat.appendChild(container);
+      scrollDown();
+    }
+
+    function addTokenBadge() {
+      addHTML(`
+        <div class="big-icon">🏅</div>
+        <h2>🎉 ¡Felicitaciones!</h2>
+        <p>Obtuviste un nuevo token cultural.</p>
+      `, 'token-badge');
+    }
+
+    function addTokenCard(data) {
+      const xpParts = data.xp.split('/');
+      const xpPercent = xpParts.length === 2 ? Math.round((parseInt(xpParts[0]) / parseInt(xpParts[1])) * 100) : 40;
+
+      let insigniasHtml = '';
+      data.insignias.forEach(ins => {
+        insigniasHtml += `
+          <div class="insignia-item">
+            <div class="badge-icon">🏅</div>
+            <div class="badge-info"><strong>${ins.nombre}</strong><br><small>Obtenida el ${ins.fecha}</small></div>
+          </div>`;
+      });
+
+      addHTML(`
+        <div class="level">${data.nivel}</div>
+        <div class="level-label">NIVEL ACTUAL</div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:${xpPercent}%"></div></div>
+        <div class="xp-text">${data.xp} XP · ${xpPercent}% al próximo nivel</div>
+        <div class="insignias-title">🏆 Insignias obtenidas</div>
+        ${insigniasHtml}
+      `, 'token-card');
+    }
+
+    function addCupones(items) {
+      items.forEach(item => {
+        addHTML(`
+          <div class="cupon-left">
+            ${item.descuento}
+            <small>DESCUENTO</small>
+          </div>
+          <div class="cupon-body">
+            <h4>${item.lugar}</h4>
+            <span>${item.validez}</span>
+          </div>
+        `, 'cupon');
+      });
+    }
+
+    function addStepsList(steps) {
+      let html = '';
+      steps.forEach((s, i) => {
+        html += `
+          <div class="step">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-text"><strong>${s.title}</strong><span>${s.desc}</span></div>
+          </div>`;
+      });
+      addHTML(html, 'steps-list');
+    }
+
+    /* ============================================================
+       ACCIONES
+       ============================================================ */
+
+    window.handleAsistencia = function() {
+      removeQuickReplies();
+      addMessage('Asistencia validada', 'user');
+      showTyping();
+      delay(1200, () => {
+        hideTyping();
+        addTokenBadge();
+        addMessage('Sumaste un nuevo token cultural a tu perfil!', 'bot');
+        addQuickReplies([{ label: '🏅 Ver mis tokens', action: handleVerTokens }]);
+      });
+    };
+
+    function handleLugares() {
+      addMessage('Lugares para visitar', 'user');
+      removeQuickReplies();
+      showTyping();
+      delay(1000, () => {
+        hideTyping();
+        addMessage('Estos son los lugares imperdibles de Salta:', 'bot');
+        addDestinoCards(datosSalta.destinos);
+      });
+    }
+
+    function handleRecomendar() {
+      addMessage('Recomendar actividades', 'user');
+      removeQuickReplies();
+      showTyping();
+      delay(1000, () => {
+        hideTyping();
+        addMessage('Mirá los eventos y actividades que tenemos:', 'bot');
+        addEventoCards(datosSalta.eventos);
+      });
+    }
+
+    function handleVerTokens() {
+      addMessage('Ver mis tokens', 'user');
+      botReply('Este es tu perfil de tokens culturales:',
+        () => addTokenCard(datosSalta.tokens_usuario)
+      );
+    }
+
+    function handleBeneficios(skipUserMsg) {
+      if (!skipUserMsg) addMessage('Qué beneficios tengo?', 'user');
+      const tokens = datosSalta.tokens_usuario.insignias.map(i => i.nombre);
+      const filtrados = datosSalta.beneficios.filter(b =>
+        !b.token_requerido || tokens.includes(b.token_requerido)
+      );
+      const count = filtrados.length;
+      const intro = count > 0
+        ? `🎉 ¡Mirá los ${count} beneficio${count > 1 ? 's' : ''} que desbloqueaste con tus tokens!`
+        : 'Aún no tenés beneficios desbloqueados. ¡Seguí participando para ganar más tokens!';
+      botReply(intro, () => addCupones(filtrados));
+    }
+
+    function handleComoFunciona() {
+      addMessage('¿Cómo funciona?', 'user');
+      removeQuickReplies();
+      showTyping();
+      delay(1000, () => {
+        hideTyping();
+        addMessage('Así funciona Pelusa en 4 pasos:', 'bot');
+        addStepsList(PASOS);
+      });
+    }
+
+    /* ============================================================
+       MOTOR DE RESPUESTAS INTELIGENTES (para input de texto)
+       ============================================================ */
+
+    function getBotResponse(text) {
+      const raw = text;
+      const t = normalize(raw);
+
+      // saludar
+      if (/^(hola|buenas|buen[adas]|que tal|hey|saludos|buen dia|buenas tardes)/.test(t))
+        return { msgs: ['¡Hola! ¿En qué puedo ayudarte? Podés preguntarme por destinos, eventos o tokens.'], showBtns: true };
+
+      // gracias
+      if (/(gracias|graciela|thank|thanks|muchas gracias|te lo agradezco)/.test(t))
+        return { msgs: ['¡De nada! 😊 Cualquier cosa que necesites, acá estoy.'], showBtns: true };
+
+      // destinos / lugares
+      if (/(destinos|destino|lugares|visitar|conocer|turismo|viajar|paseo|excursion)/.test(t) && !/(eventos|evento|feria)/.test(t))
+        return { msgs: ['Estos son los destinos turísticos disponibles en Salta:'], cards: 'destinos' };
+
+      // eventos
+      if (/(eventos|evento|feria|actividades|que hacer|agenda|finde|fin de semana|recomendar)/.test(t))
+        return { msgs: ['Estos son los próximos eventos en Salta:'], cards: 'eventos' };
+
+      // tokens / perfil
+      if (/(token|tokens|mis tokens|perfil|nivel|insignias|xp|logros)/.test(t))
+        return { msgs: ['Este es tu perfil de tokens culturales:'], action: 'tokens' };
+
+      // beneficios / descuentos
+      if (/(beneficios|beneficio|descuento|cupon|cupones|que tengo|canjear)/.test(t))
+        return { msgs: [], action: 'beneficios' };
+
+      // como funciona
+      if (/(como funciona|como se usa|que es|ayuda|pasos|explicame)/.test(t))
+        return { msgs: ['Así funciona Pelusa en 4 pasos:'], action: 'pasos' };
+
+      // precio
+      if (/(precio|costo|cuanto|cuesta|plata|pesos|caro|barato)/.test(t))
+        return { msgs: ['Los precios aproximados:\n• Tren a las Nubes: $40.000 ARS\n• Teleférico San Bernardo: $10.000 ARS\n• Eventos: SaltaTech Gratis (Charla Pro $6.000), Feria Artesanal Gratis'], showBtns: true };
+
+      // asistencia / qr
+      if (/(asistencia|qr|validar|escane|token nuevo)/.test(t))
+        return { msgs: ['Simulá la asistencia desde cualquier tarjeta de destino o evento con el botón "✅ Simular Asistencia (QR)".'], showBtns: true };
+
+      // no entendió
+      return { msgs: ['No entendí bien tu consulta. ¿Querés que te muestre los destinos, eventos o tu perfil de tokens?'], showBtns: true };
+    }
+
+    function processUserInput(text) {
+      text = text.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      chatInput.value = '';
+      removeQuickReplies();
+      showTyping();
+
+      delay(1200, () => {
+        hideTyping();
+        const r = getBotResponse(text);
+
+        r.msgs.forEach(m => addMessage(m, 'bot'));
+
+        if (r.cards === 'destinos') {
+          addDestinoCards(datosSalta.destinos);
+        } else if (r.cards === 'eventos') {
+          addEventoCards(datosSalta.eventos);
+        } else if (r.action === 'tokens') {
+          addTokenCard(datosSalta.tokens_usuario);
+        } else if (r.action === 'beneficios') {
+          const tokens = datosSalta.tokens_usuario.insignias.map(i => i.nombre);
+          const filtrados = datosSalta.beneficios.filter(b =>
+            !b.token_requerido || tokens.includes(b.token_requerido)
+          );
+          const count = filtrados.length;
+          addMessage(count > 0
+            ? `🎉 ¡Mirá los ${count} beneficio${count > 1 ? 's' : ''} que desbloqueaste con tus tokens!`
+            : 'Aún no tenés beneficios desbloqueados. ¡Seguí participando para ganar más tokens!', 'bot');
+          if (filtrados.length) addCupones(filtrados);
+        } else if (r.action === 'pasos') {
+          addStepsList(PASOS);
+        }
+
+        if (r.showBtns) {
+          addQuickReplies([
+            { label: '🎯 Recomendar actividades', action: handleRecomendar },
+            { label: '📍 Lugares para visitar',   action: handleLugares },
+            { label: '🏅 Ver mis tokens',         action: handleVerTokens },
+            { label: '❓ ¿Cómo funciona?',        action: handleComoFunciona }
+          ]);
+        }
+      });
+    }
+
+    /* ============================================================
+       RESET
+       ============================================================ */
+    function resetChat() {
+      clearPending();
+      chat.innerHTML = '';
+      addMessage('¡Hola! Soy Pelusa, tu guía inteligente de Salta. ¿Qué querés hacer hoy?', 'bot');
+      delay(700, () => {
+        addQuickReplies([
+          { label: '🎯 Recomendar actividades', action: handleRecomendar },
+          { label: '📍 Lugares para visitar',   action: handleLugares },
+          { label: '🏅 Ver mis tokens',         action: handleVerTokens },
+          { label: '❓ ¿Cómo funciona?',        action: handleComoFunciona }
+        ]);
+      });
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', resetChat);
+
+    /* ============================================================
+       EVENT LISTENERS
+       ============================================================ */
+    sendBtn.addEventListener('click', () => processUserInput(chatInput.value));
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        processUserInput(chatInput.value);
+      }
+    });
+
+    /* ============================================================
+       INICIO
+       ============================================================ */
+    function init() {
+      addMessage('¡Hola! Soy Pelusa, tu guía inteligente de Salta. ¿Qué querés hacer hoy?', 'bot');
+      delay(700, () => {
+        addQuickReplies([
+          { label: '🎯 Recomendar actividades', action: handleRecomendar },
+          { label: '📍 Lugares para visitar',   action: handleLugares },
+          { label: '🏅 Ver mis tokens',         action: handleVerTokens },
+          { label: '❓ ¿Cómo funciona?',        action: handleComoFunciona }
+        ]);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
